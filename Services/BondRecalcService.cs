@@ -21,9 +21,9 @@ public class BondRecalcService(HttpClient httpClient)
         {
             var date = data[0].ToString()!;
             var facevalue = Math.Round(decimal.Parse(data[5].ToString()!), 2);
-            var close = Math.Round(decimal.Parse(data[1].ToString()!, CultureInfo.InvariantCulture) * facevalue / 100, 2);
-            var low = Math.Round(decimal.Parse(data[2].ToString()!, CultureInfo.InvariantCulture) * facevalue / 100, 2);
-            var high = Math.Round(decimal.Parse(data[3].ToString()!, CultureInfo.InvariantCulture) * facevalue / 100, 2);
+            var close = data[1] != null ? Math.Round(decimal.Parse(data[1].ToString()!, CultureInfo.InvariantCulture) * facevalue / 100, 2) : 0;
+            var low = data[2] != null ? Math.Round(decimal.Parse(data[2].ToString()!, CultureInfo.InvariantCulture) * facevalue / 100, 2) : 0;
+            var high = data[3] != null ? Math.Round(decimal.Parse(data[3].ToString()!, CultureInfo.InvariantCulture) * facevalue / 100, 2) : 0;
             var vol = int.Parse(data[4].ToString()!, CultureInfo.InvariantCulture);
 
             result.Add(new Bond(date, close, low, high, vol));

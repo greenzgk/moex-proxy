@@ -34,28 +34,27 @@ public class BondRecalcService(HttpClient httpClient)
 
     public async Task<IEnumerable<Bond>> GetBondMarketData(string board, string symbol)
     {
-        var query = $"engines/stock/markets/bonds/boards/{board}/securities/{symbol}.json?iss.meta=off&iss.only=marketdata&marketdata.columns=SYSTIME,LAST,HIGH,LOW,VOLTODAY,VALUE";
+        var query = $"engines/stock/markets/bonds/boards/{board}/securities/{symbol}.json?iss.meta=off&iss.only=marketdata,securities&marketdata.columns=SYSTIME,LAST,HIGH,LOW,VOLTODAY&securities.columns=FACEVALUE";
 
         var response = await httpClient.GetFromJsonAsync<MoexMarketResponse>(query);
 
-        if (response == null) return [];
+        if (response == null || response.Marketdata.Data.Length == 0) return [];
 
         var result = new List<Bond>(response.Marketdata.Data.Length);
 
-        foreach (var data in response.Marketdata.Data)
-        {
-            var date = data[0].ToString()!;
-            var value = Math.Round(decimal.Parse(data[5].ToString()!), 2);
-            var last = Math.Round(decimal.Parse(data[1].ToString()!, CultureInfo.InvariantCulture), 2);
-            var facevalue = value * 100 / last;
+        var marketData = response.Marketdata.Data[0];
+        var securitiesData = response.Securities.Data[0];
 
-            var close = last * facevalue / 100;
-            var low = Math.Round(decimal.Parse(data[2].ToString()!, CultureInfo.InvariantCulture) * facevalue / 100, 2);
-            var high = Math.Round(decimal.Parse(data[3].ToString()!, CultureInfo.InvariantCulture) * facevalue / 100, 2);
-            var vol = int.Parse(data[4].ToString()!, CultureInfo.InvariantCulture);
+        var date = marketData[0].ToString()!;
+        var facevalue = decimal.Parse(securitiesData[0].ToString()!, CultureInfo.InvariantCulture);
+        var last = decimal.Parse(marketData[1].ToString()!, CultureInfo.InvariantCulture);
 
-            result.Add(new Bond(date, close, low, high, vol));
-        }
+        var close = Math.Round(last * facevalue / 100, 2);
+        var low = Math.Round(decimal.Parse(marketData[2].ToString()!, CultureInfo.InvariantCulture) * facevalue / 100, 2);
+        var high = Math.Round(decimal.Parse(marketData[3].ToString()!, CultureInfo.InvariantCulture) * facevalue / 100, 2);
+        var vol = int.Parse(marketData[4].ToString()!, CultureInfo.InvariantCulture);
+
+        result.Add(new Bond(date, close, low, high, vol));
 
         return result;
     }

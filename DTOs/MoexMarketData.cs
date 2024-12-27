@@ -1,5 +1,5 @@
 namespace MoexProxy.DTOs;
 
-public record MoexMarket(string[] Columns, object[][] Data);
+public record DataObj(string[] Columns, object[][] Data);
 
-public record MoexMarketResponse(MoexMarket Marketdata);
+public record MoexMarketResponse(DataObj Marketdata, DataObj Securities);
